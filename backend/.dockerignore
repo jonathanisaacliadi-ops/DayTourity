@@ -1,0 +1,54 @@
+# ================================================================
+# .dockerignore — LokaGuide Backend
+# File ini WAJIB ada agar:
+#   1. Build context tidak mengirim node_modules (ratusan MB) ke Docker daemon
+#   2. File sensitif (.env) tidak masuk ke image
+#   3. Build lebih cepat
+# ================================================================
+
+# Dependencies (di-install ulang di dalam image)
+node_modules
+npm-debug.log*
+yarn-error.log*
+
+# Compiled output (di-build ulang di dalam image)
+dist
+
+# Environment files — JANGAN masuk ke image
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Editor / IDE
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Docs
+README.md
+*.md
+CHANGELOG*
+LICENSE
+
+# Test & coverage
+coverage
+.nyc_output
+__tests__
+*.spec.ts
+*.test.ts
+jest.config.*
+
+# Upload folder (data runtime, bukan bagian dari image)
+uploads
+
+# OS files
+.DS_Store
+Thumbs.db

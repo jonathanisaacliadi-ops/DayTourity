@@ -1,0 +1,46 @@
+import { Injectable, ConflictException } from '@nestjs/common';
+import { PricePreference, Role, User } from '@prisma/client';
+import { UsersRepository } from './users.repository';
+
+@Injectable()
+export class UsersService {
+  constructor(private readonly usersRepository: UsersRepository) {}
+
+  findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findByEmail(email);
+  }
+
+  findById(id: string): Promise<User | null> {
+    return this.usersRepository.findById(id);
+  }
+
+  create(data: {
+    email: string;
+    name: string;
+    password: string;
+  }): Promise<User> {
+    return this.usersRepository.create(data);
+  }
+
+  updatePreferences(
+    userId: string,
+    pricePreference: PricePreference,
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+    return this.usersRepository.updatePreferences(userId, pricePreference);
+  }
+
+  async becomeGuide(
+    userId: string,
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+    const user = await this.usersRepository.findRoleById(userId);
+
+    if (user.role === Role.PENDING_GUIDE) {
+      throw new ConflictException('Your application is already under review.');
+    }
+    if (user.role === Role.GUIDE) {
+      throw new ConflictException('You are already a verified guide.');
+    }
+
+    return this.usersRepository.updateRole(userId, Role.PENDING_GUIDE);
+  }
+}
