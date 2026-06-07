@@ -144,17 +144,24 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<String?> becomeGuide() async {
+  Future<String?> becomeGuide({
+    required String email,
+    required String phone,
+  }) async {
   final current = state.valueOrNull;
   if (current is! AuthAuthenticated) {
     return 'Silakan login kembali.';
   }
 
   try {
-    await _datasource.becomeGuide(token: current.token);
-    await _storage.delete(key: _tokenKey);
-    await _storage.write(key: 'guide_upgrade_complete', value: 'true');
-    state = const AsyncData(AuthUnauthenticated());
+    final updatedUser = await _datasource.becomeGuide(
+      token: current.token,
+      email: email,
+      phone: phone,
+    );
+    state = AsyncData(
+      AuthAuthenticated(user: updatedUser, token: current.token),
+    );
     return null;
   } on AuthException catch (e) {
     return e.message;

@@ -4,7 +4,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_text_field.dart';
 import 'register_page.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -24,7 +23,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
   @override
   void initState() {
     super.initState();
-    _checkGuideUpgrade();
     _animCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -39,26 +37,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
     _animCtrl.forward();
   }
-
-  Future<void> _checkGuideUpgrade() async {
-  const storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
-  final flag = await storage.read(key: 'guide_upgrade_complete');
-  if (flag != 'true') return;
-  await storage.delete(key: 'guide_upgrade_complete');
-  if (!mounted) return;
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Your guide account is ready — sign in again to activate guide features.',
-        ),
-        duration: Duration(seconds: 6),
-      ),
-    );
-  });
-}
 
   @override
   void dispose() {

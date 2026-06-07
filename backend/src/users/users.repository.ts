@@ -61,4 +61,28 @@ export class UsersRepository {
       select: userSummarySelect,
     });
   }
+
+  applyForGuide(userId: string, phone: string): Promise<UserSummary> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role: Role.PENDING_GUIDE, phone },
+      select: userSummarySelect,
+    });
+  }
+
+  findPendingGuides(): Promise<
+    Pick<User, 'id' | 'name' | 'email' | 'phone' | 'createdAt'>[]
+  > {
+    return this.prisma.user.findMany({
+      where: { role: Role.PENDING_GUIDE },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

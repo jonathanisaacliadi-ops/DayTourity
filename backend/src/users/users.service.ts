@@ -1,6 +1,7 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { PricePreference, Role, User } from '@prisma/client';
 import { UsersRepository } from './users.repository';
+import { BecomeGuideDto } from './dto/become-guide.dto';
 
 @Injectable()
 export class UsersService {
@@ -31,6 +32,7 @@ export class UsersService {
 
   async becomeGuide(
     userId: string,
+    dto: BecomeGuideDto,
   ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
     const user = await this.usersRepository.findRoleById(userId);
 
@@ -41,6 +43,36 @@ export class UsersService {
       throw new ConflictException('You are already a verified guide.');
     }
 
-    return this.usersRepository.updateRole(userId, Role.PENDING_GUIDE);
+    return this.usersRepository.applyForGuide(userId, dto.phone);
+  }
+
+  findPendingGuides(): Promise<
+    Pick<User, 'id' | 'name' | 'email' | 'phone' | 'createdAt'>[]
+  > {
+    return this.usersRepository.findPendingGuides();
+  }
+
+  async approveGuide(
+    userId: string,
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+    const user = await this.usersRepository.findRoleById(userId);
+
+    if (user.role !== Role.PENDING_GUIDE) {
+      throw new ConflictException('This user has no pending application.');
+    }
+
+    return this.usersRepository.updateRole(userId, Role.GUIDE);
+  }
+
+  async rejectGuide(
+    userId: string,
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+    const user = await this.usersRepository.findRoleById(userId);
+
+    if (user.role !== Role.PENDING_GUIDE) {
+      throw new ConflictException('This user has no pending application.');
+    }
+
+    return this.usersRepository.updateRole(userId, Role.USER);
   }
 }

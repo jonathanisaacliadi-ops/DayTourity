@@ -26,6 +26,8 @@ Future<Uint8List> _readFileBytesViaDataUrl(html.File file) async {
   final comma = dataUrl.indexOf(',');
   final b64 = dataUrl.substring(comma + 1);
   return base64Decode(b64);
+}
+
 Future<List<html.File>> _openFilePicker({bool multiple = false}) async {
   final completer = Completer<List<html.File>>();
 

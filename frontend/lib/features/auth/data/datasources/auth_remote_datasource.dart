@@ -145,16 +145,21 @@ class AuthRemoteDatasource {
     );
   }
 
-  Future<AuthUser> becomeGuide({required String token}) async {
+  Future<AuthUser> becomeGuide({
+    required String token,
+    required String email,
+    required String phone,
+  }) async {
     final uri = Uri.parse('$_base/users/me/become-guide');
     if (kDebugMode) debugPrint('[AUTH] PATCH $uri');
- 
+
     final response = await client.patch(
       uri,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
+      body: jsonEncode({'email': email, 'phone': phone}),
     ).timeout(const Duration(seconds: 10));
  
     if (kDebugMode) debugPrint('[AUTH] ${response.statusCode} ${response.body}');

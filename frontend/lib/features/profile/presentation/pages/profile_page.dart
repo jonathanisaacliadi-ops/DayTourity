@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../admin/presentation/pages/admin_page.dart';
 import '../../../auth/domain/entities/auth_user.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/active_mode_provider.dart';
@@ -35,6 +36,7 @@ class ProfilePage extends ConsumerWidget {
     final role       = user?.role.toUpperCase() ?? 'USER';
     final isGuide    = role == 'GUIDE';
     final isPending  = role == 'PENDING_GUIDE';
+    final isAdmin    = role == 'ADMIN';
     final isGuideMode = activeMode == 'GUIDE';
 
     final initial = user?.name.trim().isNotEmpty == true
@@ -168,7 +170,19 @@ class ProfilePage extends ConsumerWidget {
               onTap: () => _showPriceSheet(context, ref, user?.pricePreference),
             ),
             const SizedBox(height: 8),
-            if (isGuide)
+            if (isAdmin)
+              _SettingsTile(
+                icon: Icons.admin_panel_settings_outlined,
+                iconColor: Colors.deepOrange,
+                title: 'Guide Applications',
+                subtitle: 'Review users applying to be guides',
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminPage()),
+                ),
+              )
+            else if (isGuide)
               _GuideModeToggleTile(
                 isGuideMode: isGuideMode,
                 onChanged: (m) => ref.read(activeModeProvider.notifier).setMode(m),
@@ -427,17 +441,49 @@ class _BecomeGuideSheet extends ConsumerStatefulWidget {
 }
 
 class _BecomeGuideSheetState extends ConsumerState<_BecomeGuideSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _loading = false;
   String? _error;
 
+  @override
+  void initState() {
+    super.initState();
+    final authState = ref.read(authProvider).valueOrNull;
+    if (authState is AuthAuthenticated) {
+      _emailController.text = authState.user.email;
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
   Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() { _loading = true; _error = null; });
-    final err = await ref.read(authProvider.notifier).becomeGuide();
+    final err = await ref.read(authProvider.notifier).becomeGuide(
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
+        );
     if (!mounted) return;
     if (err != null) {
       setState(() { _error = err; _loading = false; });
     } else {
+      final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Your guide submission has been sent, Wait a couple days for a message back',
+          ),
+          duration: Duration(seconds: 5),
+        ),
+      );
     }
   }
 
@@ -446,54 +492,91 @@ class _BecomeGuideSheetState extends ConsumerState<_BecomeGuideSheet> {
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.viewInsetsOf(context).bottom),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Center(child: Container(width: 36, height: 4,
-            margin: const EdgeInsets.only(bottom: 20),
-            decoration: BoxDecoration(color: cs.outlineVariant,
-                borderRadius: BorderRadius.circular(2)))),
-        Row(children: [
-          Container(padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: cs.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-            child: Icon(Icons.verified_user_outlined, color: cs.primary)),
-          const SizedBox(width: 14),
-          Text('Become a Guide',
-              style: Theme.of(context).textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700)),
+      child: Form(
+        key: _formKey,
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Center(child: Container(width: 36, height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2)))),
+          Row(children: [
+            Container(padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: cs.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(Icons.verified_user_outlined, color: cs.primary)),
+            const SizedBox(width: 14),
+            Text('Become a Guide',
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 16),
+          Text('Share your contact details so an admin can review your '
+               'application. Your current role stays the same until approval.',
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: cs.onSurface.withValues(alpha: 0.7), height: 1.5)),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            enabled: !_loading,
+            decoration: const InputDecoration(
+              labelText: 'Email',
+              prefixIcon: Icon(Icons.email_outlined),
+              border: OutlineInputBorder(),
+            ),
+            validator: (v) {
+              final value = v?.trim() ?? '';
+              if (value.isEmpty) return 'Email is required';
+              final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+              if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
+              return null;
+            },
+          ),
+          const SizedBox(height: 14),
+          TextFormField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            enabled: !_loading,
+            decoration: const InputDecoration(
+              labelText: 'Phone number',
+              prefixIcon: Icon(Icons.phone_outlined),
+              border: OutlineInputBorder(),
+            ),
+            validator: (v) {
+              final value = v?.trim() ?? '';
+              if (value.isEmpty) return 'Phone number is required';
+              if (value.length < 6) return 'Enter a valid phone number';
+              return null;
+            },
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(color: cs.errorContainer,
+                  borderRadius: BorderRadius.circular(8)),
+              child: Row(children: [
+                Icon(Icons.error_outline, color: cs.error, size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_error!,
+                    style: TextStyle(color: cs.error, fontSize: 13))),
+              ])),
+          ],
+          const SizedBox(height: 24),
+          Row(children: [
+            Expanded(child: OutlinedButton(
+                onPressed: _loading ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'))),
+            const SizedBox(width: 12),
+            Expanded(child: FilledButton(
+              onPressed: _loading ? null : _submit,
+              child: _loading
+                  ? const SizedBox(width: 18, height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Submit Application'),
+            )),
+          ]),
         ]),
-        const SizedBox(height: 16),
-        Text('Your application will be reviewed by our team. '
-             "You'll be notified once verified. "
-             'Your current role stays the same until approval.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: cs.onSurface.withValues(alpha: 0.7), height: 1.5)),
-        if (_error != null) ...[
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(color: cs.errorContainer,
-                borderRadius: BorderRadius.circular(8)),
-            child: Row(children: [
-              Icon(Icons.error_outline, color: cs.error, size: 16),
-              const SizedBox(width: 8),
-              Expanded(child: Text(_error!,
-                  style: TextStyle(color: cs.error, fontSize: 13))),
-            ])),
-        ],
-        const SizedBox(height: 24),
-        Row(children: [
-          Expanded(child: OutlinedButton(
-              onPressed: _loading ? null : () => Navigator.pop(context),
-              child: const Text('Cancel'))),
-          const SizedBox(width: 12),
-          Expanded(child: FilledButton(
-            onPressed: _loading ? null : _submit,
-            child: _loading
-                ? const SizedBox(width: 18, height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Submit Application'),
-          )),
-        ]),
-      ]),
+      ),
     );
   }
 }

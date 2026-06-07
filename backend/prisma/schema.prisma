@@ -36,10 +36,10 @@ enum BookingStatus {
 }
 
 enum TourStatus {
-  PLANNED    // Booking dikonfirmasi, tur belum dimulai
-  ONGOING    // Tur sedang berlangsung
-  COMPLETED  // Tur selesai
-  CANCELLED  // Tur dibatalkan
+  PLANNED
+  ONGOING
+  COMPLETED
+  CANCELLED
 }
 
 
@@ -54,6 +54,7 @@ model User {
   email           String          @unique
   password        String
   name            String
+  phone           String?
   role            Role            @default(USER)
   pricePreference PricePreference @default(STANDARD)
   createdAt       DateTime        @default(now())
@@ -143,16 +144,16 @@ model Conversation {
 
 model Booking {
   id             String      @id @default(uuid())
-  conversationId String?     @unique  // optional: direct reservations have no conversation
+  conversationId String?     @unique 
   tourId         String
   travellerId    String
   guideId        String
   status         TourStatus  @default(PLANNED)
-  scheduledDate  DateTime    // Tanggal tur yang disepakati
+  scheduledDate  DateTime
   agreedPrice    Decimal     @db.Decimal(12, 2)
-  notes          String?     // Catatan tambahan dari traveller
-  startedAt      DateTime?   // Diisi saat guide mulai tur
-  completedAt    DateTime?   // Diisi saat tur selesai
+  notes          String?
+  startedAt      DateTime?
+  completedAt    DateTime?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
