@@ -45,7 +45,7 @@ export class ToursService {
     }));
 
     let filtered = taggedTours;
-    if (query.priceCategory && thresholds) {
+    if (query.priceCategory) {
       const allowed = this.pricingService.preferenceToCategories(
         query.priceCategory,
       );

@@ -15,15 +15,6 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  String? _selectedCategory;
-
-  static const _categories = [
-    (null, 'All', Icons.explore_outlined),
-    ('BUDGET', 'Budget', Icons.savings_outlined),
-    ('STANDARD', 'Standard', Icons.tune_outlined),
-    ('PREMIUM', 'Premium', Icons.workspace_premium_outlined),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -36,9 +27,13 @@ class _HomePageState extends ConsumerState<HomePage> {
         ? authState.user.name.split(' ').first
         : 'Explorer';
 
+    final priceCategory = authState is AuthAuthenticated
+        ? authState.user.pricePreference.name.toUpperCase()
+        : null;
+
     final toursAsync = ref.watch(
       toursProvider(
-        ToursFilter(city: city, priceCategory: _selectedCategory),
+        ToursFilter(city: city, priceCategory: priceCategory),
       ),
     );
 
@@ -62,29 +57,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 locState: locState,
                 onLocationTap: () => _showCityPicker(context),
                 onAvatarTap: () => MainShell.jumpTo(context, 4),
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 52,
-              child: ListView.separated(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                scrollDirection: Axis.horizontal,
-                itemCount: _categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final (val, label, icon) = _categories[i];
-                  final active = _selectedCategory == val;
-                  return _CategoryChip(
-                    label: label,
-                    icon: icon,
-                    active: active,
-                    onTap: () => setState(() => _selectedCategory = val),
-                  );
-                },
               ),
             ),
           ),
@@ -322,71 +294,6 @@ class _HeroHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.label,
-    required this.icon,
-    required this.active,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-        decoration: BoxDecoration(
-          color: active ? cs.primary : cs.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active ? cs.primary : cs.outline.withValues(alpha: 0.6),
-            width: 1.5,
-          ),
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                    color: cs.primary.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : [],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon,
-                size: 15,
-                color: active
-                    ? cs.onPrimary
-                    : cs.onSurface.withValues(alpha: 0.6)),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color:
-                    active ? cs.onPrimary : cs.onSurface.withValues(alpha: 0.7),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

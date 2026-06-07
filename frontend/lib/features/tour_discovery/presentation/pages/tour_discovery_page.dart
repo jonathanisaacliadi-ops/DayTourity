@@ -105,7 +105,7 @@ class _TourDiscoveryPageState extends ConsumerState<TourDiscoveryPage> {
                     onRetry: () => ref.invalidate(toursProvider),
                   ),
                   data: (tours) => tours.isEmpty
-                      ? _EmptyState(city: _cityQuery)
+                      ? _EmptyState(city: _cityQuery, category: _selectedCategory)
                       : _TourGrid(tours: tours),
                 ),
               ),
@@ -682,13 +682,36 @@ class _SkeletonCard extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.city});
+  const _EmptyState({required this.city, this.category});
   final String city;
+  final String? category;
+
+  static const _categoryLabels = {
+    'BUDGET': 'Budget',
+    'STANDARD': 'Standard',
+    'PREMIUM': 'Premium',
+  };
 
   @override
   Widget build(BuildContext context) {
     final cs    = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+
+    final catLabel = _categoryLabels[category];
+    final String title;
+    final String subtitle;
+    if (catLabel != null) {
+      title = city.isNotEmpty
+          ? 'Sorry, no $catLabel tours found in "$city"'
+          : 'Sorry, no $catLabel tours available right now';
+      subtitle = 'Try a different price range or city';
+    } else {
+      title = city.isNotEmpty
+          ? 'No tours found in "$city"'
+          : 'No tours available';
+      subtitle = 'Try a different city or category';
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -706,14 +729,12 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              city.isNotEmpty
-                  ? 'No tours found in "$city"'
-                  : 'No tours available',
+              title,
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('Try a different city or category',
+            Text(subtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(
                     color: cs.onSurface.withValues(alpha: 0.45)),
                 textAlign: TextAlign.center),
