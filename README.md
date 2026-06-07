@@ -1,4 +1,4 @@
-# LokaGuide
+# DayTourity
 Aplikasi platform digital untuk menghubungkan wisatawan dengan tour guide lokal terverifikasi secara praktis.
 
 ## Deskripsi Proyek
