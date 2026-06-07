@@ -49,4 +49,7 @@ Pastikan tools berikut sudah terinstall sebelum memulai:
 
 ---
 
+## Manual Guide
+Silakan baca [Manual Instalasi dan Penggunaan (PDF)](docs/Manual_Instalasi_dan_Penggunaan.pdf).
+
 
