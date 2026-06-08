@@ -7,7 +7,7 @@ const bookingSummaryInclude = {
     select: { id: true, title: true, city: true, coverImageUrl: true },
   },
   guide: {
-    select: { id: true, name: true },
+    select: { id: true, name: true, phone: true },
   },
 };
 const guideBookingInclude = {

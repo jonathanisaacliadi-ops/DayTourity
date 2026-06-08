@@ -39,15 +39,17 @@ class BookingTourSummary {
 }
  
 class BookingGuideSummary {
-  const BookingGuideSummary({required this.id, required this.name});
+  const BookingGuideSummary({required this.id, required this.name, this.phone});
 
   final String id;
   final String name;
+  final String? phone;
 
   factory BookingGuideSummary.fromJson(Map<String, dynamic> json) {
     return BookingGuideSummary(
-      id:   json['id'] as String,
-      name: json['name'] as String,
+      id:    json['id'] as String,
+      name:  json['name'] as String,
+      phone: json['phone'] as String?,
     );
   }
 }
@@ -94,6 +96,9 @@ class BookingEntity {
   bool get canCancel =>
       status == TourStatus.planned &&
       scheduledDate.difference(DateTime.now()).inHours >= 72;
+
+  bool get isGuideContactRevealed =>
+      scheduledDate.difference(DateTime.now()).inHours <= 48;
 
   factory BookingEntity.fromJson(Map<String, dynamic> json) {
     return BookingEntity(

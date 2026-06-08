@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/image_picker_platform.dart' as img_picker;
@@ -130,6 +131,7 @@ class _TourDetailScaffoldState extends ConsumerState<_TourDetailScaffold> {
                     tour: tour,
                     isOwner: _isOwner,
                     isUploadingPhoto: _isUploadingPhoto,
+                    reservation: _reservationFor(tour),
                     onAddPhoto: () => _addPhoto(context),
                     onEditTour: () => Navigator.push(
                       context,
@@ -531,6 +533,7 @@ class _TourBody extends StatefulWidget {
     required this.onEditTour,
     required this.onDeleteTour,
     required this.onDeletePhoto,
+    this.reservation,
   });
 
   final Tour tour;
@@ -540,6 +543,7 @@ class _TourBody extends StatefulWidget {
   final VoidCallback onEditTour;
   final VoidCallback onDeleteTour;
   final ValueChanged<String> onDeletePhoto;
+  final BookingEntity? reservation;
 
   @override
   State<_TourBody> createState() => _TourBodyState();
@@ -639,6 +643,14 @@ class _TourBodyState extends State<_TourBody>
               onEditTour: widget.onEditTour,
               onDeleteTour: widget.onDeleteTour,
             ),
+          ),
+        ],
+
+        if (widget.reservation != null &&
+            widget.reservation!.status != TourStatus.cancelled) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: _GuideContactCard(reservation: widget.reservation!),
           ),
         ],
 
@@ -810,6 +822,101 @@ class _TourBodyState extends State<_TourBody>
   }
 }
 
+
+class _GuideContactCard extends StatelessWidget {
+  const _GuideContactCard({required this.reservation});
+  final BookingEntity reservation;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    final phone = reservation.guide?.phone;
+    final hasPhone = phone != null && phone.trim().isNotEmpty;
+    final revealed = reservation.isGuideContactRevealed;
+
+    final String title;
+    final String message;
+    final IconData icon;
+    if (revealed && hasPhone) {
+      title = 'Guide contact';
+      message = phone;
+      icon = Icons.call_outlined;
+    } else if (revealed) {
+      title = 'Guide contact';
+      message = "The guide hasn't added a contact number yet — use chat to reach out.";
+      icon = Icons.call_outlined;
+    } else {
+      title = 'Contact unlocks soon';
+      message = "The guide's contact number will be shown here 48 hours before the tour starts.";
+      icon = Icons.lock_clock_outlined;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: revealed && hasPhone
+            ? cs.primary.withValues(alpha: 0.06)
+            : cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: revealed && hasPhone
+              ? cs.primary.withValues(alpha: 0.2)
+              : cs.outline.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: revealed && hasPhone
+                  ? cs.primaryContainer
+                  : cs.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon,
+                size: 18,
+                color: revealed && hasPhone
+                    ? cs.primary
+                    : cs.onSurface.withValues(alpha: 0.4)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(message,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurface
+                            .withValues(alpha: revealed && hasPhone ? 0.75 : 0.5))),
+              ],
+            ),
+          ),
+          if (revealed && hasPhone)
+            IconButton(
+              tooltip: 'Copy number',
+              icon: Icon(Icons.copy_rounded, size: 18, color: cs.primary),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: phone));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Phone number copied')),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class _InfoPill extends StatelessWidget {
   const _InfoPill({
