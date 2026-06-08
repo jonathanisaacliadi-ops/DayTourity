@@ -1,3 +1,5 @@
+import '../../../../core/currency/app_currency.dart';
+
 enum PricePreference { budget, standard, premium }
 
 class AuthUser {
@@ -7,6 +9,7 @@ class AuthUser {
     required this.name,
     required this.role,
     this.pricePreference = PricePreference.standard,
+    this.currency = AppCurrency.idr,
   });
 
   final String id;
@@ -14,6 +17,7 @@ class AuthUser {
   final String name;
   final String role;
   final PricePreference pricePreference;
+  final AppCurrency currency;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -22,6 +26,7 @@ class AuthUser {
       name: json['name'] as String,
       role: json['role'] as String,
       pricePreference: _parsePreference(json['pricePreference'] as String?),
+      currency: AppCurrency.fromCode(json['currency'] as String?),
     );
   }
 
@@ -36,13 +41,14 @@ class AuthUser {
     }
   }
 
-  AuthUser copyWith({PricePreference? pricePreference}) {
+  AuthUser copyWith({PricePreference? pricePreference, AppCurrency? currency}) {
     return AuthUser(
       id: id,
       email: email,
       name: name,
       role: role,
       pricePreference: pricePreference ?? this.pricePreference,
+      currency: currency ?? this.currency,
     );
   }
 }

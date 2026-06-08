@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/widgets/green_page_header.dart';
+import '../../../../core/currency/price_text.dart';
 import '../../../bookings/domain/entities/booking_entity.dart';
 import '../../../bookings/presentation/providers/reservations_provider.dart';
 
@@ -111,10 +112,18 @@ class _ReservationCard extends StatelessWidget {
             text: DateFormat('EEE, dd MMM yyyy').format(booking.scheduledDate),
           ),
           const SizedBox(height: 6),
-          _InfoLine(
-            icon: Icons.payments_outlined,
-            text: 'Rp ${_fmt(booking.agreedPrice)}',
-            bold: true,
+          Row(
+            children: [
+              Icon(Icons.payments_outlined, size: 15, color: cs.onSurfaceVariant),
+              const SizedBox(width: 8),
+              PriceText(
+                amountIdr: booking.agreedPrice,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
+                    ),
+              ),
+            ],
           ),
           if (booking.notes != null && booking.notes!.isNotEmpty) ...[
             const SizedBox(height: 6),
@@ -125,8 +134,6 @@ class _ReservationCard extends StatelessWidget {
     );
   }
 
-  static String _fmt(double v) => v.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
 }
 
 class _InfoLine extends StatelessWidget {

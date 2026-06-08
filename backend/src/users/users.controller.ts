@@ -8,6 +8,7 @@ import {
   RequestUser,
 } from '../auth/decorators/current-user.decorator';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { BecomeGuideDto } from './dto/become-guide.dto';
 
 @Controller('users')
@@ -34,6 +35,15 @@ export class UsersController {
   ) {
     return this.usersService.updatePreferences(user.userId, dto.pricePreference);
   }
+
+  @Patch('me/currency')
+  updateCurrency(
+    @CurrentUser() user: RequestUser,
+    @Body() dto: UpdateCurrencyDto,
+  ) {
+    return this.usersService.updateCurrency(user.userId, dto.currency);
+  }
+
   @Patch('me/become-guide')
   becomeGuide(@CurrentUser() user: RequestUser, @Body() dto: BecomeGuideDto) {
     return this.usersService.becomeGuide(user.userId, dto);

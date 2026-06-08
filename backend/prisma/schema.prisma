@@ -23,6 +23,23 @@ enum PricePreference {
   PREMIUM
 }
 
+enum Currency {
+  USD
+  EUR
+  CNY
+  KRW
+  JPY
+  THB
+  SGD
+  MYR
+  VND
+  IDR
+  AUD
+  NZD
+  INR
+  PHP
+}
+
 enum PricingType {
   FIXED
   RANGE
@@ -57,6 +74,7 @@ model User {
   phone           String?
   role            Role            @default(USER)
   pricePreference PricePreference @default(STANDARD)
+  currency        Currency        @default(IDR)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 

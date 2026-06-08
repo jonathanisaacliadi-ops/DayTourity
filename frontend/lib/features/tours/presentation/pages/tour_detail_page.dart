@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/image_picker_platform.dart' as img_picker;
+import '../../../../core/currency/price_text.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../domain/entities/tour.dart';
 import '../providers/tours_provider.dart';
@@ -747,7 +748,7 @@ class _TourBodyState extends State<_TourBody>
                         _ActivityCard(
                           icon: Icons.tour_outlined,
                           title: 'Base tour price',
-                          price: tour.basePriceDisplay,
+                          amountIdr: tour.basePrice,
                           cs: cs, theme: theme,
                         ),
                       if (tour.basePrice > 0) const SizedBox(height: 10),
@@ -757,7 +758,8 @@ class _TourBodyState extends State<_TourBody>
                           icon: Icons.check_circle_outline_rounded,
                           title: act.name,
                           subtitle: act.description,
-                          price: act.priceDisplay,
+                          amountIdr: act.priceAmountIdr,
+                          rangeEndIdr: act.priceRangeEndIdr,
                           cs: cs, theme: theme,
                         ),
                       )),
@@ -776,11 +778,14 @@ class _TourBodyState extends State<_TourBody>
                             Text('Total Price',
                                 style: theme.textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w700)),
-                            Text(tour.startingPriceDisplay,
-                                style: theme.textTheme.titleMedium
-                                    ?.copyWith(
-                                        color: cs.primary,
-                                        fontWeight: FontWeight.w800)),
+                            PriceText(
+                              amountIdr: tour.hasPrice ? tour.minTotalPrice : null,
+                              prefix: tour.hasPrice ? 'From ' : '',
+                              style: theme.textTheme.titleMedium
+                                  ?.copyWith(
+                                      color: cs.primary,
+                                      fontWeight: FontWeight.w800),
+                            ),
                           ],
                         ),
                       ),
@@ -970,13 +975,16 @@ class _ActivityCard extends StatelessWidget {
   const _ActivityCard({
     required this.icon,
     required this.title,
-    required this.price,
+    required this.amountIdr,
     required this.cs,
     required this.theme,
+    this.rangeEndIdr,
     this.subtitle,
   });
   final IconData icon;
-  final String title, price;
+  final String title;
+  final double? amountIdr;
+  final double? rangeEndIdr;
   final String? subtitle;
   final ColorScheme cs;
   final ThemeData theme;
@@ -1012,11 +1020,14 @@ class _ActivityCard extends StatelessWidget {
                       ?.copyWith(color: cs.onSurface.withValues(alpha: 0.5))),
           ],
         )),
-        Text(price,
-            style: TextStyle(
-                color: cs.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 13)),
+        PriceText(
+          amountIdr: amountIdr,
+          rangeEndIdr: rangeEndIdr,
+          style: TextStyle(
+              color: cs.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 13),
+        ),
       ]),
     );
   }
@@ -1442,8 +1453,8 @@ class _ReservationSheetState extends ConsumerState<_ReservationSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Total', style: theme.textTheme.titleMedium),
-                Text(
-                  'Rp ${_fmt(widget.tour.totalPrice)}',
+                PriceText(
+                  amountIdr: widget.tour.totalPrice,
                   style: theme.textTheme.titleMedium?.copyWith(
                       color: cs.primary, fontWeight: FontWeight.w700),
                 ),
@@ -1474,7 +1485,4 @@ class _ReservationSheetState extends ConsumerState<_ReservationSheet> {
 
   static bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
-
-  static String _fmt(double v) => v.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
 }

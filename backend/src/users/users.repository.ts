@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PricePreference, Role, User } from '@prisma/client';
+import { Currency, PricePreference, Role, User } from '@prisma/client';
 
 type UserSummary = Pick<
   User,
-  'id' | 'email' | 'name' | 'role' | 'pricePreference'
+  'id' | 'email' | 'name' | 'role' | 'pricePreference' | 'currency'
 >;
 
 const userSummarySelect = {
@@ -13,6 +13,7 @@ const userSummarySelect = {
   name: true,
   role: true,
   pricePreference: true,
+  currency: true,
 } as const;
 
 
@@ -43,6 +44,14 @@ export class UsersRepository {
     return this.prisma.user.update({
       where: { id: userId },
       data: { pricePreference },
+      select: userSummarySelect,
+    });
+  }
+
+  updateCurrency(userId: string, currency: Currency): Promise<UserSummary> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { currency },
       select: userSummarySelect,
     });
   }

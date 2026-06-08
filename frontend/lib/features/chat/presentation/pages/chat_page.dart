@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/currency/price_text.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/itinerary_proposal.dart';
 import '../../domain/entities/message_entity.dart';
@@ -302,9 +303,6 @@ class _TourInquiryCard extends StatelessWidget {
   final Tour tour;
   const _TourInquiryCard({required this.tour});
 
-  static String _fmt(double v) =>
-      NumberFormat('#,###', 'id_ID').format(v);
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -417,8 +415,9 @@ class _TourInquiryCard extends StatelessWidget {
                               child: Text(act.name,
                                   style: const TextStyle(fontSize: 13)),
                             ),
-                            Text(
-                              act.priceDisplay,
+                            PriceText(
+                              amountIdr: act.priceAmountIdr,
+                              rangeEndIdr: act.priceRangeEndIdr,
                               style: TextStyle(
                                   fontSize: 12,
                                   color: cs.primary,
@@ -449,8 +448,8 @@ class _TourInquiryCard extends StatelessWidget {
                             fontSize: 12,
                             color:
                                 cs.onSurface.withValues(alpha: 0.55))),
-                    Text(
-                      'Rp ${_fmt(tour.totalPrice)}',
+                    PriceText(
+                      amountIdr: tour.totalPrice,
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: cs.primary,
                         fontWeight: FontWeight.w700,
@@ -592,9 +591,6 @@ class _ItineraryProposalBubble extends StatelessWidget {
     this.onAccept,
   });
 
-  static String _fmt(double v) =>
-      NumberFormat('#,###', 'id_ID').format(v);
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -720,18 +716,30 @@ class _ItineraryProposalBubble extends StatelessWidget {
                                               FontWeight.w600)),
                                   if (act.duration != null ||
                                       act.price != null)
-                                    Text(
-                                      [
+                                    Row(
+                                      children: [
                                         if (act.duration != null)
-                                          act.duration!,
+                                          Text(act.duration!,
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: cs.onSurface
+                                                      .withValues(alpha: 0.6))),
+                                        if (act.duration != null &&
+                                            act.price != null)
+                                          Text(' · ',
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: cs.onSurface
+                                                      .withValues(alpha: 0.6))),
                                         if (act.price != null)
-                                          'Rp ${_fmt(act.price!)}',
-                                      ].join(' · '),
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: cs.onSurface
-                                              .withValues(
-                                                  alpha: 0.6)),
+                                          PriceText(
+                                            amountIdr: act.price,
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: cs.onSurface
+                                                    .withValues(alpha: 0.6)),
+                                          ),
+                                      ],
                                     ),
                                 ],
                               ),
@@ -748,8 +756,8 @@ class _ItineraryProposalBubble extends StatelessWidget {
                         children: [
                           Text('Total',
                               style: theme.textTheme.titleSmall),
-                          Text(
-                            'Rp ${_fmt(proposal.displayTotal)}',
+                          PriceText(
+                            amountIdr: proposal.displayTotal,
                             style: theme.textTheme.titleSmall
                                 ?.copyWith(
                               color: cs.primary,

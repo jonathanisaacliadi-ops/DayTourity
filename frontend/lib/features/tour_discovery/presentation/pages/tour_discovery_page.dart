@@ -8,6 +8,7 @@ import '../../../../features/tours/presentation/pages/tour_detail_page.dart';
 import '../../../../features/tours/presentation/providers/tours_provider.dart';
 import '../../../../core/widgets/green_page_header.dart';
 import '../../../../core/widgets/guide_trust.dart';
+import '../../../../core/currency/price_text.dart';
 
 
 String _picsumUrl(String seed, {int w = 600, int h = 400}) =>
@@ -573,8 +574,8 @@ class _DiscoveryCardState extends State<_DiscoveryCard>
                                         fontSize: 10,
                                         color: cs.onSurface
                                             .withValues(alpha: 0.4))),
-                                Text(
-                                  'Rp ${_fmt(tour.minTotalPrice)}',
+                                PriceText(
+                                  amountIdr: tour.minTotalPrice,
                                   style: TextStyle(
                                     color: cs.primary,
                                     fontSize: 14,
@@ -610,11 +611,6 @@ class _DiscoveryCardState extends State<_DiscoveryCard>
         PriceCategory.outlier =>
           ('Exclusive', const Color(0xFFC2410C), const Color(0xFFFFEDD5)),
       };
-
-  static String _fmt(double v) => v
-      .toStringAsFixed(0)
-      .replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
 
   Widget _placeholderImg(ColorScheme cs) {
     return CachedNetworkImage(

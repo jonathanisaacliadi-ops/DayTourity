@@ -1,5 +1,5 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import { PricePreference, Role, User } from '@prisma/client';
+import { Currency, PricePreference, Role, User } from '@prisma/client';
 import { UsersRepository } from './users.repository';
 import { BecomeGuideDto } from './dto/become-guide.dto';
 
@@ -26,14 +26,21 @@ export class UsersService {
   updatePreferences(
     userId: string,
     pricePreference: PricePreference,
-  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference' | 'currency'>> {
     return this.usersRepository.updatePreferences(userId, pricePreference);
+  }
+
+  updateCurrency(
+    userId: string,
+    currency: Currency,
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference' | 'currency'>> {
+    return this.usersRepository.updateCurrency(userId, currency);
   }
 
   async becomeGuide(
     userId: string,
     dto: BecomeGuideDto,
-  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference' | 'currency'>> {
     const user = await this.usersRepository.findRoleById(userId);
 
     if (user.role === Role.PENDING_GUIDE) {
@@ -54,7 +61,7 @@ export class UsersService {
 
   async approveGuide(
     userId: string,
-  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference' | 'currency'>> {
     const user = await this.usersRepository.findRoleById(userId);
 
     if (user.role !== Role.PENDING_GUIDE) {
@@ -66,7 +73,7 @@ export class UsersService {
 
   async rejectGuide(
     userId: string,
-  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference'>> {
+  ): Promise<Pick<User, 'id' | 'email' | 'name' | 'role' | 'pricePreference' | 'currency'>> {
     const user = await this.usersRepository.findRoleById(userId);
 
     if (user.role !== Role.PENDING_GUIDE) {

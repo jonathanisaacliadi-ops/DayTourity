@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../admin/presentation/pages/admin_page.dart';
 import '../../../auth/domain/entities/auth_user.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/currency/app_currency.dart';
 import '../providers/active_mode_provider.dart';
 
 const _prefMeta = {
@@ -170,6 +171,15 @@ class ProfilePage extends ConsumerWidget {
               onTap: () => _showPriceSheet(context, ref, user?.pricePreference),
             ),
             const SizedBox(height: 8),
+            _SettingsTile(
+              icon: Icons.currency_exchange_outlined,
+              title: 'Display Currency',
+              subtitle: (user?.currency ?? AppCurrency.idr).displayName,
+              subtitleColor: cs.primary,
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showCurrencySheet(context, ref, user?.currency),
+            ),
+            const SizedBox(height: 8),
             if (isAdmin)
               _SettingsTile(
                 icon: Icons.admin_panel_settings_outlined,
@@ -241,6 +251,14 @@ class ProfilePage extends ConsumerWidget {
             borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
         builder: (_) => _PricePreferenceSheet(
             current: cur ?? PricePreference.standard),
+      );
+
+  void _showCurrencySheet(BuildContext ctx, WidgetRef ref, AppCurrency? cur) =>
+      showModalBottomSheet(
+        context: ctx, isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        builder: (_) => _CurrencySheet(current: cur ?? AppCurrency.idr),
       );
 
   void _showBecomeGuideSheet(BuildContext ctx, WidgetRef ref) =>
@@ -656,6 +674,110 @@ class _PricePreferenceSheetState extends ConsumerState<_PricePreferenceSheet> {
             ),
           );
         }),
+        if (_error != null) ...[
+          const SizedBox(height: 8),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(color: cs.errorContainer,
+                borderRadius: BorderRadius.circular(8)),
+            child: Row(children: [
+              Icon(Icons.error_outline, color: cs.error, size: 16),
+              const SizedBox(width: 8),
+              Expanded(child: Text(_error!,
+                  style: TextStyle(color: cs.error, fontSize: 13))),
+            ])),
+        ],
+        const SizedBox(height: 20),
+        Row(children: [
+          Expanded(child: OutlinedButton(
+              onPressed: _loading ? null : () => Navigator.pop(context),
+              child: const Text('Cancel'))),
+          const SizedBox(width: 12),
+          Expanded(child: FilledButton(
+            onPressed: (_loading || _selected == widget.current) ? null : _save,
+            child: _loading
+                ? const SizedBox(width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Save'),
+          )),
+        ]),
+      ]),
+    );
+  }
+}
+
+class _CurrencySheet extends ConsumerStatefulWidget {
+  const _CurrencySheet({required this.current});
+  final AppCurrency current;
+  @override
+  ConsumerState<_CurrencySheet> createState() => _CurrencySheetState();
+}
+
+class _CurrencySheetState extends ConsumerState<_CurrencySheet> {
+  late AppCurrency _selected;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void initState() { super.initState(); _selected = widget.current; }
+
+  Future<void> _save() async {
+    setState(() { _loading = true; _error = null; });
+    final err = await ref.read(authProvider.notifier).updateCurrency(_selected);
+    if (!mounted) return;
+    if (err != null) { setState(() { _error = err; _loading = false; }); }
+    else Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs    = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Center(child: Container(width: 36, height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(color: cs.outlineVariant,
+                borderRadius: BorderRadius.circular(2)))),
+        Text('Display Currency',
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text('Tour and booking prices will be converted to your chosen currency.',
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: cs.onSurface.withValues(alpha: 0.6))),
+        const SizedBox(height: 16),
+        ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.42),
+          child: SingleChildScrollView(
+            child: Column(children: AppCurrency.values.map((currency) {
+              final selected = _selected == currency;
+              return GestureDetector(
+                onTap: () => setState(() => _selected = currency),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: selected ? cs.primary.withValues(alpha: 0.08)
+                        : cs.surfaceContainerHighest.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: selected ? cs.primary : cs.outlineVariant.withValues(alpha: 0.5),
+                      width: selected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(children: [
+                    Expanded(child: Text(currency.displayName,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: selected ? cs.primary : cs.onSurface))),
+                    if (selected) Icon(Icons.check_circle_rounded, color: cs.primary, size: 20),
+                  ]),
+                ),
+              );
+            }).toList()),
+          ),
+        ),
         if (_error != null) ...[
           const SizedBox(height: 8),
           Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

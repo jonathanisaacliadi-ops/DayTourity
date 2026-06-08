@@ -8,7 +8,8 @@ import { BookingsModule } from './bookings/bookings.module';
 import { ChatModule } from './chat/chat.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { HealthModule } from './health/health.module';
- 
+import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
     ChatModule,
     UploadsModule,
     HealthModule,
+    ExchangeRatesModule,
   ],
 })
 

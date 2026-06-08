@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../domain/entities/auth_user.dart';
+import '../../../../core/currency/app_currency.dart';
  
 final _secureStorageProvider = Provider<FlutterSecureStorage>(
   (_) => const FlutterSecureStorage(
@@ -132,6 +133,26 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       final updatedUser = await _datasource.updatePreferences(
         token: current.token,
         pricePreference: prefString,
+      );
+      state = AsyncData(
+        AuthAuthenticated(user: updatedUser, token: current.token),
+      );
+      return null;
+    } on AuthException catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'Terjadi kesalahan. Coba lagi.';
+    }
+  }
+
+  Future<String?> updateCurrency(AppCurrency currency) async {
+    final current = state.valueOrNull;
+    if (current is! AuthAuthenticated) return 'Silakan login kembali.';
+
+    try {
+      final updatedUser = await _datasource.updateCurrency(
+        token: current.token,
+        currency: currency.code,
       );
       state = AsyncData(
         AuthAuthenticated(user: updatedUser, token: current.token),

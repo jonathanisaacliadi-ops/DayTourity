@@ -36,21 +36,15 @@ class TourActivity {
     );
   }
 
-  String get priceDisplay {
-    if (pricingType == PricingType.fixed && fixedPrice != null) {
-      return 'Rp ${_fmt(fixedPrice!)}';
-    }
-    if (pricingType == PricingType.range &&
-        minPrice != null &&
-        maxPrice != null) {
-      return 'Rp ${_fmt(minPrice!)} – ${_fmt(maxPrice!)}';
-    }
-    return 'Price TBD';
+  double? get priceAmountIdr {
+    if (pricingType == PricingType.fixed) return fixedPrice;
+    return minPrice;
   }
 
-  static String _fmt(double v) =>
-      v.toStringAsFixed(0).replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (m) => '${m[1]}.',
-      );
+  double? get priceRangeEndIdr {
+    if (pricingType == PricingType.range) return maxPrice;
+    return null;
+  }
+
+  bool get hasPrice => priceAmountIdr != null;
 }

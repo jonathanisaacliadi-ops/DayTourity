@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/widgets/green_page_header.dart';
+import '../../../../core/currency/price_text.dart';
 import '../../data/datasources/bookings_remote_datasource.dart';
 import '../../domain/entities/booking_entity.dart';
 import '../providers/my_tours_provider.dart';
@@ -304,8 +305,8 @@ class _BookingCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          'Rp ${_fmt(booking.agreedPrice)}',
+                        PriceText(
+                          amountIdr: booking.agreedPrice,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
@@ -338,8 +339,6 @@ class _BookingCard extends StatelessWidget {
     );
   }
 
-  static String _fmt(double v) => v.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
 }
 
 class _StatusBadge extends StatelessWidget {

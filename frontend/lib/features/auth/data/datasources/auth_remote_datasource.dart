@@ -145,6 +145,37 @@ class AuthRemoteDatasource {
     );
   }
 
+  Future<AuthUser> updateCurrency({
+    required String token,
+    required String currency,
+  }) async {
+    final uri = Uri.parse('$_base/users/me/currency');
+    if (kDebugMode) debugPrint('[AUTH] PATCH $uri');
+
+    final response = await client.patch(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'currency': currency}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (kDebugMode) debugPrint('[AUTH] ${response.statusCode} ${response.body}');
+
+    if (response.statusCode >= 400) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final message = body['message'];
+      throw AuthException(
+        message is List ? (message.first as String) : (message as String? ?? 'Request failed'),
+      );
+    }
+
+    return AuthUser.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<AuthUser> becomeGuide({
     required String token,
     required String email,

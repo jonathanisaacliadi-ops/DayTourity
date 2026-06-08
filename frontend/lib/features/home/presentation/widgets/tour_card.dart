@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/currency/price_text.dart';
 import '../../../tours/domain/entities/tour.dart';
 
 String _picsumUrl(String seed, {int w = 800, int h = 520}) =>
@@ -30,9 +31,6 @@ String _picsumUrl(String seed, {int w = 800, int h = 520}) =>
           const Color(0xFFFFEDD5)
         ),
     };
-
-String _formatPrice(double v) => v.toStringAsFixed(0).replaceAllMapped(
-    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
 
 class _Pill extends StatelessWidget {
   const _Pill({required this.label, required this.fg, required this.bg});
@@ -160,9 +158,11 @@ class CompactTourCard extends StatelessWidget {
                           style: theme.textTheme.bodySmall?.copyWith(
                               fontSize: 10,
                               color: cs.onSurface.withValues(alpha: 0.4))),
-                      Text('Rp ${_formatPrice(tour.minTotalPrice)}',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                              color: cs.primary, fontWeight: FontWeight.w800)),
+                      PriceText(
+                        amountIdr: tour.minTotalPrice,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                            color: cs.primary, fontWeight: FontWeight.w800),
+                      ),
                     ],
                   ),
                 ),

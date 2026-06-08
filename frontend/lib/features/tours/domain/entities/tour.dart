@@ -136,14 +136,5 @@ class Tour {
     return basePrice + activitiesMin;
   }
 
-  String get startingPriceDisplay {
-    if (basePrice == 0 && activities.isEmpty) return 'Price TBD';
-    return 'From Rp ${_fmt(minTotalPrice)}';
-  }
-
-  String get basePriceDisplay => 'Rp ${_fmt(basePrice)}';
-
-  static String _fmt(double v) => v
-      .toStringAsFixed(0)
-      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+  bool get hasPrice => basePrice > 0 || activities.isNotEmpty;
 }
